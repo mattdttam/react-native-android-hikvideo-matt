@@ -1,4 +1,4 @@
-package com.matt.android.hikvideo;
+package com.matt.rn.android.hikvideo;
 
 import android.content.Context;
 import android.util.Log;

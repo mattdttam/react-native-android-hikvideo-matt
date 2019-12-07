@@ -1,4 +1,4 @@
-package com.matt.android.hikvideo;
+package com.matt.rn.android.hikvideo;
 
 import android.annotation.SuppressLint;
 import android.content.Context;

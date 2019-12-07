@@ -1,4 +1,4 @@
-package com.matt.android.hikvideo;
+package com.matt.rn.android.hikvideo;
 
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.common.MapBuilder;

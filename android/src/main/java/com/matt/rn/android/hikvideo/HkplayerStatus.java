@@ -1,4 +1,4 @@
-package com.matt.android.hikvideo;
+package com.matt.rn.android.hikvideo;
 
 public enum HkplayerStatus {
     IDLE,//闲置状态
