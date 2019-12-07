@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="playerBackground">#000000</color>
+    <color name="playerHintText">#ffffff</color>
+    <!-- 回放，TimeBar底部可播放时间区域显示颜色 -->
+    <color name="playbackTimebar">#2e78c2</color>
+    <color name="playbackTimebarBackground">#333333</color>
+</resources>

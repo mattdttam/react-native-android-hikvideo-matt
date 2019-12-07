@@ -1,0 +1,36 @@
+{
+  "name": "react-native-android-hikvideo-matt",
+  "version": "1.0.0",
+  "description": "A ReactNative Hikvision Component for android",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "react-native",
+    "react-component",
+    "react-native-component",
+    "react",
+    "mobile",
+    "android",
+    "hikvision",
+    "hikvideo",
+    "hikplayer"
+  ],
+  "author": {
+    "name": "matt",
+    "email": "matt.d.ttam@hotmail.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:mattdttam/react-native-android-hikvideo-matt.git"
+  },
+  "devDependencies": {
+    "react": "16.9.0",
+    "react-native": "0.61.4"
+  },
+  "peerDependencies": {
+    "react-native": "0.61.4"
+  }
+}
