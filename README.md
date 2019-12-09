@@ -27,6 +27,32 @@
       implementation project(':react-native-android-hikvideo-matt')
   	```
 
+## Modify android build.gradle as follow
+
+```
+splits {
+        abi {
+            enable true
+            reset()
+            include "armeabi-v7a"
+        }
+    }
+```
+```
+applicationVariants.all { variant ->
+        variant.outputs.each { output ->
+            // For each separate APK per architecture, set a unique version code as described here:
+            // https://developer.android.com/studio/build/configure-apk-splits.html
+            def versionCodes = ["armeabi-v7a": 1]
+            def abi = output.getFilter(OutputFile.ABI)
+            if (abi != null) {  // null for the universal-debug, universal-release variants
+                output.versionCodeOverride =
+                        versionCodes.get(abi) * 1048576 + defaultConfig.versionCode
+            }
+
+        }
+    }
+```
 
 ## Usage
 ```javascript
