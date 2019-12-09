@@ -14,7 +14,7 @@
 
 #### Android
 
-1. Open up `android/app/src/main/java/[...]/PackageList.java`
+1. Open up `android/app/src/main/java/[...]/MainApplication.java`
   - Add `import com.matt.rn.android.hikvideo.HkplayerViewPackage;` to the imports at the top of the file
   - Add `new HkplayerViewPackage()` to the list returned by the `getPackages()` method
 2. Append the following lines to `android/settings.gradle`:
