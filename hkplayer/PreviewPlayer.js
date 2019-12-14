@@ -32,7 +32,7 @@ export default class PreviewPlayer extends React.Component {
     this.listener = DeviceEventEmitter.addListener(
       'HKPLAYER_PREVIEW_STATUS',
       ret => {
-        if (_self.state.uri == ret.uri) {
+        if (this.props.uri == ret.uri) {
           this.setState({
             status: ret.status,
             //mPausing: ret.mPausing,

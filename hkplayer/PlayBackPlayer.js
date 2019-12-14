@@ -31,7 +31,7 @@ export default class PlayBackPlayer extends React.Component {
     this.listner = DeviceEventEmitter.addListener(
       'HKPLAYER_PLAY_BACK_STATUS',
       ret => {
-        if (_self.state.uri == ret.uri) {
+        if (this.props.uri == ret.uri) {
           this.setState({
             status: ret.status,
             mPausing: ret.mPausing,
