@@ -80,6 +80,7 @@ public class HkplayerView extends RelativeLayout
                 break;
             case "TALK":
                 executeTalkEvent();
+                break;
             case "ONPAUSE":
                 onPause();
                 break;
@@ -232,7 +233,7 @@ public class HkplayerView extends RelativeLayout
 
         //抓图
         if (mPlayer.capturePicture(MyUtils.getCaptureImagePath(this.context))) {
-            ToastUtils.showShort("抓图成功");
+            ToastUtils.showShort("截屏成功");
         }
     }
 
@@ -248,13 +249,17 @@ public class HkplayerView extends RelativeLayout
             //开始录像
             String path = MyUtils.getLocalRecordPath(this.context);
             if (mPlayer.startRecord(path)) {
-                ToastUtils.showShort("开始录像");
+                ToastUtils.showShort("已开始录像");
+                playHintText.setVisibility(View.VISIBLE);
+                playHintText.setText("正在录像中...");
                 statusChangeHandler.setmRecording(true);
             }
         } else {
             //关闭录像
             if(mPlayer.stopRecord()) {
-                ToastUtils.showShort("关闭录像");
+                ToastUtils.showShort("已停止录像");
+                playHintText.setVisibility(View.INVISIBLE);
+                playHintText.setText("");
                 statusChangeHandler.setmRecording(false);
             }
 
@@ -272,13 +277,13 @@ public class HkplayerView extends RelativeLayout
         if (!statusChangeHandler.ismSoundOpen()) {
             //打开声音
             if (mPlayer.enableSound(true)) {
-                ToastUtils.showShort("声音开");
+                ToastUtils.showShort("声音已开");
                 statusChangeHandler.setmSoundOpen(true);
             }
         } else {
             //关闭声音
             if (mPlayer.enableSound(false)) {
-                ToastUtils.showShort("声音关");
+                ToastUtils.showShort("声音已关");
                 statusChangeHandler.setmSoundOpen(false);
             }
         }
@@ -302,9 +307,7 @@ public class HkplayerView extends RelativeLayout
         playHintText.setVisibility(View.INVISIBLE);
         //startVoiceTalk() 方法会阻塞当前线程，需要在子线程中执行,建议使用RxJava
         new Thread(() -> {
-            if (mPlayer.startVoiceTalk(mUri, HkplayerView.this)) {
-                onTalkStatus(HikVideoPlayerCallback.Status.SUCCESS, -1);
-            } else {
+            if (!mPlayer.startVoiceTalk(mUri, HkplayerView.this)) {
                 onTalkStatus(HikVideoPlayerCallback.Status.FAILED, mPlayer.getLastError());
             }
         }).start();
@@ -325,7 +328,7 @@ public class HkplayerView extends RelativeLayout
                 case SUCCESS:
                     //播放成功
                     statusChangeHandler.setmTalking(true);
-                    ToastUtils.showShort("正在对讲中...");
+                    ToastUtils.showShort("已开启对讲");
                     break;
                 case FAILED:
                     //播放失败

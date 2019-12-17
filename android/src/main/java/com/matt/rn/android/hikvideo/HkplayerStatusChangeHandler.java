@@ -1,3 +1,10 @@
+/*
+ * @Description: 
+ * @Author: 党辉
+ * @Date: 2019-12-14 17:25:35
+ * @LastEditors: 党辉
+ * @LastEditTime: 2019-12-17 10:14:21
+ */
 package com.matt.rn.android.hikvideo;
 
 import com.facebook.react.bridge.ReactContext;
@@ -18,7 +25,7 @@ public class HkplayerStatusChangeHandler {
     public HkplayerStatusChangeHandler(ReactContext context, String eventName) {
         this.eventName = eventName;
         this.status = HkplayerStatus.IDLE;
-        this.mSoundOpen = true;
+        this.mSoundOpen = false;
         this.trigger = new HkplayerEventTrigger();
         this.context = context;
     }

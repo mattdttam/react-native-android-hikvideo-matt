@@ -285,7 +285,7 @@ public class HkplayerPlayBackView extends RelativeLayout implements HikVideoPlay
 
         //抓图
         if (mPlayer.capturePicture(MyUtils.getCaptureImagePath(this.context))) {
-            ToastUtils.showShort("抓图成功");
+            ToastUtils.showShort("截屏成功");
         }
     }
 
@@ -302,13 +302,13 @@ public class HkplayerPlayBackView extends RelativeLayout implements HikVideoPlay
             String path = MyUtils.getLocalRecordPath(this.context);
             if (mPlayer.startRecord(path)) {
                 statusChangeHandler.setmRecording(true);
-                ToastUtils.showShort("开始录像");
+                ToastUtils.showShort("已开始录像");
             }
         } else {
             //关闭录像
             if (mPlayer.stopRecord()) {
                 statusChangeHandler.setmRecording(false);
-                ToastUtils.showShort("关闭录像");
+                ToastUtils.showShort("已停止录像");
             }
         }
     }
@@ -325,13 +325,13 @@ public class HkplayerPlayBackView extends RelativeLayout implements HikVideoPlay
             //打开声音
             if (mPlayer.enableSound(true)) {
                 statusChangeHandler.setmSoundOpen(true);
-                ToastUtils.showShort("声音开");
+                ToastUtils.showShort("声音已开");
             }
         } else {
             //关闭声音
             if (mPlayer.enableSound(false)) {
                 statusChangeHandler.setmSoundOpen(false);
-                ToastUtils.showShort("声音关");
+                ToastUtils.showShort("声音已关");
             }
         }
     }

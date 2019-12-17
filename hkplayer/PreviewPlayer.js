@@ -21,7 +21,7 @@ export default class PreviewPlayer extends React.Component {
       appState: AppState.currentState,
       status: PLAYER_STATUS.IDLE,
       //mPausing: false,
-      mSoundOpen: true,
+      mSoundOpen: false,
       mRecording: false,
       mTalking: false,
     };
@@ -58,7 +58,7 @@ export default class PreviewPlayer extends React.Component {
 
   renderVoiceImage() {
     {
-      if(this.state.status == PLAYER_STATUS.SUCCESS) {
+      if(this.state.status == PLAYER_STATUS.SUCCESS && !this.props.disableVoice) {
         if(this.state.mSoundOpen==false) {
           return require('./images/mute.png');
         } else {
@@ -76,7 +76,8 @@ export default class PreviewPlayer extends React.Component {
 
   renderMicImage() {
     {
-    if(this.state.status == PLAYER_STATUS.SUCCESS) {
+    console.log("!disableMic: " + !this.props.disableMic);
+    if(this.state.status == PLAYER_STATUS.SUCCESS && !this.props.disableMic) {
         if(this.state.mTalking==false) {
           return require('./images/mic-muted.png');
         } else {
@@ -94,7 +95,7 @@ export default class PreviewPlayer extends React.Component {
 
   renderRecordImage() {
     {
-    if(this.state.status == PLAYER_STATUS.SUCCESS) {
+    if(this.state.status == PLAYER_STATUS.SUCCESS && !this.props.disableRecord) {
         if(this.state.mRecording==false) {
           return require('./images/no-camcorder.png');
         } else {
@@ -153,12 +154,12 @@ export default class PreviewPlayer extends React.Component {
               <TouchableOpacity
                 style={styles.aButton}
                 onPress={() => this.executeCommand(PLAYER_COMMANDS.SOUND)}
-                disabled={this.state.status != PLAYER_STATUS.SUCCESS}>
+                disabled={this.state.status != PLAYER_STATUS.SUCCESS && this.props.disableVoice}>
                 <Image
                   style={styles.itemImage}
                   source={this.renderVoiceImage()}
                 />
-                <Text style={this.state.status==PLAYER_STATUS.SUCCESS?styles.itemText:styles.itemTextDis}>
+                <Text style={this.state.status==PLAYER_STATUS.SUCCESS&&!this.props.disableVoice?styles.itemText:styles.itemTextDis}>
                   {this.state.mSoundOpen==true?"静音":"开启声音"}
                 </Text>
               </TouchableOpacity>
@@ -166,15 +167,13 @@ export default class PreviewPlayer extends React.Component {
             <View style={styles.item}>
               <TouchableOpacity
                 style={styles.aButton}
-                onPress={() => this.executeCommand(PLAYER_COMMANDS.TALK)}
-                disabled={this.state.status != PLAYER_STATUS.SUCCESS}>
+                onPress={() => this.executeCommand(PLAYER_COMMANDS.CAPTURE)}
+                disabled={this.state.status != PLAYER_STATUS.SUCCESS && this.props.disableCapture}>
                 <Image
                   style={styles.itemImage}
-                  source={this.renderMicImage()}
+                  source={ this.state.status==PLAYER_STATUS.SUCCESS&&!this.props.disableCapture?require('./images/camera.png'):require('./images/camera-dis.png')}
                 />
-                <Text style={this.state.status==PLAYER_STATUS.SUCCESS?styles.itemText:styles.itemTextDis}>
-                  {this.state.mTalking==false?"通话":"关闭通话"}
-                </Text>
+                <Text style={this.state.status==PLAYER_STATUS.SUCCESS&&!this.props.disableCapture?styles.itemText:styles.itemTextDis}>截屏</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -182,30 +181,32 @@ export default class PreviewPlayer extends React.Component {
             <View style={styles.item}>
               <TouchableOpacity
                 style={styles.aButton}
-                onPress={() => this.executeCommand(PLAYER_COMMANDS.CAPTURE)}
-                disabled={this.state.status != PLAYER_STATUS.SUCCESS}>
-                <Image
-                  style={styles.itemImage}
-                  source={ this.state.status==PLAYER_STATUS.SUCCESS?require('./images/camera.png'):require('./images/camera-dis.png')}
-                />
-                <Text style={this.state.status==PLAYER_STATUS.SUCCESS?styles.itemText:styles.itemTextDis}>截屏</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.item} hide={this.state.mRecording}>
-              <TouchableOpacity
-                style={styles.aButton}
                 onPress={() => this.executeCommand(PLAYER_COMMANDS.RECORD)}
-                disabled={this.state.status != PLAYER_STATUS.SUCCESS}>
+                disabled={this.state.status != PLAYER_STATUS.SUCCESS && this.props.disableRecord}>
                 <Image
                   style={styles.itemImage}
                   source={this.renderRecordImage()}
                 />
-                <Text style={this.state.status==PLAYER_STATUS.SUCCESS?styles.itemText:styles.itemTextDis}>开启录像</Text>
+                <Text style={this.state.status==PLAYER_STATUS.SUCCESS&&!this.props.disableRecord?styles.itemText:styles.itemTextDis}>{this.state.mRecording==true?"停止录像":"开始录像"}</Text>
               </TouchableOpacity>
             </View>
-             <View style={styles.item}>
+            <View style={styles.item}>
+              <TouchableOpacity
+                style={styles.aButton}
+                onPress={() => this.executeCommand(PLAYER_COMMANDS.TALK)}
+                disabled={this.state.status != PLAYER_STATUS.SUCCESS && this.props.disableMic}>
+                <Image
+                  style={styles.itemImage}
+                  source={this.renderMicImage()}
+                />
+                <Text style={this.state.status==PLAYER_STATUS.SUCCESS&&!this.props.disableMic?styles.itemText:styles.itemTextDis}>
+                  {this.state.mTalking==false?"开启对讲":"关闭对讲"}
+                </Text>
+              </TouchableOpacity>
             </View>
-             <View style={styles.item}>
+            <View style={styles.item}>
+            </View>
+            <View style={styles.item}>
             </View>
           </View>
         </View>
