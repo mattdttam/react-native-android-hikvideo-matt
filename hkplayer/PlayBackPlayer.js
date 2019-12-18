@@ -187,7 +187,7 @@ export default class PlayBackPlayer extends React.Component {
               <TouchableOpacity
                 style={styles.aButton}
                 onPress={() => this.executeCommand(PLAYER_COMMANDS.SOUND)}
-                disabled={this.state.status != PLAYER_STATUS.SUCCESS && this.props.disableVoice}>
+                disabled={this.state.status != PLAYER_STATUS.SUCCESS || this.props.disableVoice}>
                 <Image
                   style={styles.itemImage}
                   source={this.renderVoiceImage()}
@@ -208,7 +208,7 @@ export default class PlayBackPlayer extends React.Component {
               <TouchableOpacity
                 style={styles.aButton}
                 onPress={() => this.executeCommand(PLAYER_COMMANDS.CAPTURE)}
-                disabled={this.state.status != PLAYER_STATUS.SUCCESS && this.props.disableCapture}>
+                disabled={this.state.status != PLAYER_STATUS.SUCCESS || this.props.disableCapture}>
                 <Image
                   style={styles.itemImage}
                   source={
@@ -231,7 +231,7 @@ export default class PlayBackPlayer extends React.Component {
               <TouchableOpacity
                 style={styles.aButton}
                 onPress={() => this.executeCommand(PLAYER_COMMANDS.RECORD)}
-                disabled={this.state.status != PLAYER_STATUS.SUCCESS && this.props.disableRecord}>
+                disabled={this.state.status != PLAYER_STATUS.SUCCESS || this.props.disableRecord}>
                 <Image
                   style={styles.itemImage}
                   source={this.renderRecordImage()}

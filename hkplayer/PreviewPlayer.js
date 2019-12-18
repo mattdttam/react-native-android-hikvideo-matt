@@ -25,6 +25,7 @@ export default class PreviewPlayer extends React.Component {
       mRecording: false,
       mTalking: false,
     };
+	// console.log("this.props.disableCapture:" + this.props.disableCapture);
   }
 
   componentDidMount() {
@@ -164,7 +165,7 @@ export default class PreviewPlayer extends React.Component {
               <TouchableOpacity
                 style={styles.aButton}
                 onPress={() => this.executeCommand(PLAYER_COMMANDS.SOUND)}
-                disabled={this.state.status != PLAYER_STATUS.SUCCESS && this.props.disableVoice}>
+                disabled={this.state.status != PLAYER_STATUS.SUCCESS || this.props.disableVoice}>
                 <Image
                   style={styles.itemImage}
                   source={this.renderVoiceImage()}
@@ -178,7 +179,7 @@ export default class PreviewPlayer extends React.Component {
               <TouchableOpacity
                 style={styles.aButton}
                 onPress={() => this.executeCommand(PLAYER_COMMANDS.CAPTURE)}
-                disabled={this.state.status != PLAYER_STATUS.SUCCESS && this.props.disableCapture}>
+                disabled={this.state.status != PLAYER_STATUS.SUCCESS || this.props.disableCapture==true}>
                 <Image
                   style={styles.itemImage}
                   source={ this.state.status==PLAYER_STATUS.SUCCESS&&!this.props.disableCapture?require('./images/camera.png'):require('./images/camera-dis.png')}
@@ -192,7 +193,7 @@ export default class PreviewPlayer extends React.Component {
               <TouchableOpacity
                 style={styles.aButton}
                 onPress={() => this.executeCommand(PLAYER_COMMANDS.RECORD)}
-                disabled={this.state.status != PLAYER_STATUS.SUCCESS && this.props.disableRecord}>
+                disabled={this.state.status != PLAYER_STATUS.SUCCESS || this.props.disableRecord}>
                 <Image
                   style={styles.itemImage}
                   source={this.renderRecordImage()}
@@ -204,7 +205,7 @@ export default class PreviewPlayer extends React.Component {
               <TouchableOpacity
                 style={styles.aButton}
                 onPress={() => this.executeCommand(PLAYER_COMMANDS.TALK)}
-                disabled={this.state.status != PLAYER_STATUS.SUCCESS && this.props.disableMic}>
+                disabled={this.state.status != PLAYER_STATUS.SUCCESS || this.props.disableMic}>
                 <Image
                   style={styles.itemImage}
                   source={this.renderMicImage()}
