@@ -45,6 +45,16 @@ export default class PreviewPlayer extends React.Component {
       },
     );
   }
+  
+  componentDidUpdate(prevProps) {
+	if (this.props.uri !== prevProps.uri) {
+	  this.setState({uri: this.props.uri});
+	  if(this.state.status == PLAYER_STATUS.SUCCESS) {
+	    this.executeCommand(PLAYER_COMMANDS.STOP);
+		// console.log("停止当前视频");
+	  }
+	}
+  }
 
   componentWillUnmount() {
     if (this.listener) {
@@ -76,7 +86,7 @@ export default class PreviewPlayer extends React.Component {
 
   renderMicImage() {
     {
-    console.log("!disableMic: " + !this.props.disableMic);
+    // console.log("!disableMic: " + !this.props.disableMic);
     if(this.state.status == PLAYER_STATUS.SUCCESS && !this.props.disableMic) {
         if(this.state.mTalking==false) {
           return require('./images/mic-muted.png');
@@ -248,12 +258,12 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   itemText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#808080',
   },
   itemTextDis: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#d3d3d3',
   },
