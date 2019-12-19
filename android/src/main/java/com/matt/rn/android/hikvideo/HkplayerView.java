@@ -156,9 +156,10 @@ public class HkplayerView extends RelativeLayout
     private void executeStopEvent() {
         if (statusChangeHandler.getStatus() == HkplayerStatus.SUCCESS) {
             if(mPlayer.stopPlay()) {
-                statusChangeHandler.setStatus(HkplayerStatus.IDLE);
+                //statusChangeHandler.setStatus(HkplayerStatus.IDLE);
+				statusChangeHandler.reset();
                 progressBar.setVisibility(View.INVISIBLE);
-                playHintText.setVisibility(View.VISIBLE);
+                playHintText.setVisibility(View.INVISIBLE);
                 playHintText.setText("");
             }
         }

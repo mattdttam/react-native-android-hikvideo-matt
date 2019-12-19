@@ -44,16 +44,6 @@ export default class PlayBackPlayer extends React.Component {
       },
     );
   }
-  
-  componentDidUpdate(prevProps) {
-	if (this.props.uri !== prevProps.uri) {
-	  this.setState({uri: this.props.uri});
-	  if(this.state.status == PLAYER_STATUS.SUCCESS) {
-	    this.executeCommand(PLAYER_COMMANDS.STOP);
-		// console.log("停止当前视频");
-	  }
-	}
-  }
 
   componentWillUnmount() {
     if (this.listener) {
@@ -118,7 +108,7 @@ export default class PlayBackPlayer extends React.Component {
                 onPress={() => {
                   this.executeCommand(PLAYER_COMMANDS.START);
                 }}
-                disabled={this.state.status == PLAYER_STATUS.SUCCESS}>
+                disabled={this.state.status == PLAYER_STATUS.SUCCESS}> 
                 <Image
                   style={styles.itemImage}
                   source={
@@ -156,7 +146,7 @@ export default class PlayBackPlayer extends React.Component {
                       ? styles.itemText
                       : styles.itemTextDis
                   }>
-                  暂停
+                  {this.state.mPausing?'恢复':'暂停'}
                 </Text>
               </TouchableOpacity>
             </View>

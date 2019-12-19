@@ -41,6 +41,15 @@ public class HkplayerStatusChangeHandler {
     public HkplayerStatus getStatus() {
         return status;
     }
+	
+	public void reset() {
+		this.status = HkplayerStatus.IDLE;
+		this.mPausing = false;
+		this.mSoundOpen = false;
+		this.mRecording = false;
+		this.mTalking = false;
+		triggerStatusChangeEvent();
+	}
 
     public void setStatus(HkplayerStatus status) {
         this.status = status;

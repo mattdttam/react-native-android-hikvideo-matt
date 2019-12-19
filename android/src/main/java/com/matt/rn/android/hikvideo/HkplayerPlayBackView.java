@@ -22,6 +22,7 @@ import com.hikvision.open.hikvideoplayer.HikVideoPlayerCallback;
 import com.hikvision.open.hikvideoplayer.HikVideoPlayerFactory;
 
 import java.text.MessageFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -52,6 +53,8 @@ public class HkplayerPlayBackView extends RelativeLayout implements HikVideoPlay
     /*回放定位时间*/
     private Calendar mSeekCalendar = Calendar.getInstance();
     private ReadableArray segments;
+    private long startTime;
+    private long endTime;
 
     public HkplayerPlayBackView(final ThemedReactContext themedReactContext) {
         super(themedReactContext);
@@ -164,6 +167,20 @@ public class HkplayerPlayBackView extends RelativeLayout implements HikVideoPlay
     }
 
     private void initTimeBarView() {
+
+        // 如果有视频还在播放中，则先关闭视频
+        if(statusChangeHandler.getStatus() == HkplayerStatus.SUCCESS) {
+            if (mPlayer.stopPlay()) {
+                //statusChangeHandler.setStatus(HkplayerStatus.IDLE);
+                statusChangeHandler.reset();
+                progressBar.setVisibility(View.INVISIBLE);
+                playHintText.setVisibility(View.INVISIBLE);
+                playHintText.setText("");
+                cancelUpdateTime();
+            }
+        }
+
+        // 设置视频片信息
         List segList = new ArrayList();
         for(int i=0; i<segments.size(); i++) {
             ReadableMap segMap = segments.getMap(i);
@@ -172,8 +189,27 @@ public class HkplayerPlayBackView extends RelativeLayout implements HikVideoPlay
             recordSegment.setEndTime(segMap.getString("endTime"));
             segList.add(recordSegment);
         }
-        //TimeBarView中数据为你从服务器端获取到的录像片段列表
         timeBar.addFileInfoList(segList);
+
+        // 设置开始、结束时间
+        startTime = CalendarUtil.getDefaultStartCalendar().getTimeInMillis();
+        endTime = CalendarUtil.getCurDayEndTime(startTime);
+        if(segments.size()>0){
+            ReadableMap segMapBegin = segments.getMap(0);
+            ReadableMap segMapEnd = segments.getMap(segments.size() - 1);
+            String segBtime = segMapBegin.getString("beginTime");
+            String segEtime = segMapEnd.getString("endTime");
+            try{
+                SimpleDateFormat sdf =   new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss.SSS" );
+                startTime = sdf.parse(segBtime.substring(0,23).replace('T',' ')).getTime();
+                endTime = sdf.parse( segEtime.substring(0,23).replace('T',' ')).getTime();
+            } catch (Exception e){
+                Log.e(TAG, "segments: beginTime&endTime error");
+            }
+        }
+        timeBar.setCurrentTime(startTime);
+
+        // 设置回调
         timeBar.setTimeBarCallback(new TimeBarView.TimePickedCallBack() {
             @Override
             public void onMoveTimeCallback(long currentTime) {
@@ -187,17 +223,19 @@ public class HkplayerPlayBackView extends RelativeLayout implements HikVideoPlay
 
             @Override
             public void onTimePickedCallback(long currentTime) {
-                //定位操作的时间要在录像片段开始时间和结束时间之内，不再范围内不要执行以下操作
-                mSeekCalendar.setTimeInMillis(currentTime);
-                Log.e(TAG, "onTimePickedCallback: currentTime = " + CalendarUtil.calendarToyyyy_MM_dd_T_HH_mm_SSSZ(mSeekCalendar));
-                AbsTime start = CalendarUtil.calendarToABS(mSeekCalendar);
-                progressBar.setVisibility(View.VISIBLE);
-                new Thread(() -> {
-                    cancelUpdateTime();//seek时停止刷新时间
-                    if (!mPlayer.seekAbsPlayback(start, HkplayerPlayBackView.this)) {
-                        onPlayerStatus(Status.FAILED, mPlayer.getLastError());
-                    }
-                }).start();
+                if(currentTime>=startTime && currentTime<=endTime) {
+                    //定位操作的时间要在录像片段开始时间和结束时间之内，不再范围内不要执行以下操作
+                    mSeekCalendar.setTimeInMillis(currentTime);
+                    Log.e(TAG, "onTimePickedCallback: currentTime = " + CalendarUtil.calendarToyyyy_MM_dd_T_HH_mm_SSSZ(mSeekCalendar));
+                    AbsTime start = CalendarUtil.calendarToABS(mSeekCalendar);
+                    progressBar.setVisibility(View.VISIBLE);
+                    new Thread(() -> {
+                        cancelUpdateTime();//seek时停止刷新时间
+                        if (!mPlayer.seekAbsPlayback(start, HkplayerPlayBackView.this)) {
+                            onPlayerStatus(Status.FAILED, mPlayer.getLastError());
+                        }
+                    }).start();
+                }
             }
 
             @Override
@@ -241,9 +279,10 @@ public class HkplayerPlayBackView extends RelativeLayout implements HikVideoPlay
     private void executeStopEvent() {
         if (statusChangeHandler.getStatus() == HkplayerStatus.SUCCESS) {
             if (mPlayer.stopPlay()) {
-                statusChangeHandler.setStatus(HkplayerStatus.IDLE);
+                //statusChangeHandler.setStatus(HkplayerStatus.IDLE);
+				statusChangeHandler.reset();
                 progressBar.setVisibility(View.INVISIBLE);
-                playHintText.setVisibility(View.VISIBLE);
+                playHintText.setVisibility(View.INVISIBLE);
                 playHintText.setText("");
                 cancelUpdateTime();
             }
@@ -264,12 +303,16 @@ public class HkplayerPlayBackView extends RelativeLayout implements HikVideoPlay
             //暂停播放
             if (mPlayer.pause()) {
                 statusChangeHandler.setmPausing(true);
+				playHintText.setVisibility(View.VISIBLE);
+                playHintText.setText("暂停中...");
                 ToastUtils.showShort("暂停播放");
             }
         } else {
             //恢复播放
             if (mPlayer.resume()) {
                 statusChangeHandler.setmPausing(false);
+				playHintText.setVisibility(View.INVISIBLE);
+                playHintText.setText("");
                 ToastUtils.showShort("恢复播放");
             }
         }
@@ -303,12 +346,16 @@ public class HkplayerPlayBackView extends RelativeLayout implements HikVideoPlay
             if (mPlayer.startRecord(path)) {
                 statusChangeHandler.setmRecording(true);
                 ToastUtils.showShort("已开始录像");
+				playHintText.setVisibility(View.VISIBLE);
+                playHintText.setText("正在录像中...");
             }
         } else {
             //关闭录像
             if (mPlayer.stopRecord()) {
                 statusChangeHandler.setmRecording(false);
                 ToastUtils.showShort("已停止录像");
+				playHintText.setVisibility(View.INVISIBLE);
+                playHintText.setText("");
             }
         }
     }
@@ -360,11 +407,9 @@ public class HkplayerPlayBackView extends RelativeLayout implements HikVideoPlay
         playHintText.setVisibility(View.INVISIBLE);
         mPlayer.setSurfaceTexture(surface);
         //开始时间为你从服务端获取的录像片段列表中第一个片段的开始时间，结束时间为录像片段列表的最后一个片段的结束时间
-        long startLongTime = CalendarUtil.getDefaultStartCalendar().getTimeInMillis();
         mStartCalendar = Calendar.getInstance();
         mEndCalendar = Calendar.getInstance();
-        long endTime = CalendarUtil.getCurDayEndTime(startLongTime);
-        mStartCalendar.setTimeInMillis(startLongTime);
+        mStartCalendar.setTimeInMillis(startTime);
         mEndCalendar.setTimeInMillis(endTime);
         AbsTime startTimeST = CalendarUtil.calendarToABS(mStartCalendar);
         AbsTime stopTimeST = CalendarUtil.calendarToABS(mEndCalendar);
