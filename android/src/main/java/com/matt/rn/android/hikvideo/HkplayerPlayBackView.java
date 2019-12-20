@@ -55,6 +55,7 @@ public class HkplayerPlayBackView extends RelativeLayout implements HikVideoPlay
     private ReadableArray segments;
     private long startTime;
     private long endTime;
+    private long seekedTime;
 
     public HkplayerPlayBackView(final ThemedReactContext themedReactContext) {
         super(themedReactContext);
@@ -206,8 +207,11 @@ public class HkplayerPlayBackView extends RelativeLayout implements HikVideoPlay
             } catch (Exception e){
                 Log.e(TAG, "segments: beginTime&endTime error");
             }
+        } else {
+            timeBar.setmIsFrozen(true);
         }
         timeBar.setCurrentTime(startTime);
+        seekedTime = startTime;
 
         // 设置回调
         timeBar.setTimeBarCallback(new TimeBarView.TimePickedCallBack() {
@@ -224,6 +228,7 @@ public class HkplayerPlayBackView extends RelativeLayout implements HikVideoPlay
             @Override
             public void onTimePickedCallback(long currentTime) {
                 if(currentTime>=startTime && currentTime<=endTime) {
+                    seekedTime = currentTime;
                     //定位操作的时间要在录像片段开始时间和结束时间之内，不再范围内不要执行以下操作
                     mSeekCalendar.setTimeInMillis(currentTime);
                     Log.e(TAG, "onTimePickedCallback: currentTime = " + CalendarUtil.calendarToyyyy_MM_dd_T_HH_mm_SSSZ(mSeekCalendar));
@@ -285,6 +290,8 @@ public class HkplayerPlayBackView extends RelativeLayout implements HikVideoPlay
                 playHintText.setVisibility(View.INVISIBLE);
                 playHintText.setText("");
                 cancelUpdateTime();
+                timeBar.setCurrentTime(startTime);
+                timeBar.setmIsFrozen(true);
             }
         } else {
             ToastUtils.showShort("没有视频在播放");
@@ -306,6 +313,8 @@ public class HkplayerPlayBackView extends RelativeLayout implements HikVideoPlay
 				playHintText.setVisibility(View.VISIBLE);
                 playHintText.setText("暂停中...");
                 ToastUtils.showShort("暂停播放");
+                timeBar.setmIsFrozen(true);
+                cancelUpdateTime();
             }
         } else {
             //恢复播放
@@ -314,6 +323,8 @@ public class HkplayerPlayBackView extends RelativeLayout implements HikVideoPlay
 				playHintText.setVisibility(View.INVISIBLE);
                 playHintText.setText("");
                 ToastUtils.showShort("恢复播放");
+                timeBar.setmIsFrozen(false);
+                startUpdateTime();
             }
         }
     }
@@ -443,19 +454,27 @@ public class HkplayerPlayBackView extends RelativeLayout implements HikVideoPlay
                     case SUCCESS:
                         //播放成功
                         statusChangeHandler.setStatus(HkplayerStatus.SUCCESS);
+                        //如果之前是暂停状态，则取消暂停
+                        if(statusChangeHandler.ismPausing()){
+                            statusChangeHandler.setmPausing(false);
+                        }
                         playHintText.setVisibility(View.INVISIBLE);
                         textureView.setKeepScreenOn(true);//保持亮屏
-                        timeBar.setCurrentTime(mPlayer.getOSDTime());
+                        timeBar.setmIsFrozen(false);
+                        //timeBar.setCurrentTime(mPlayer.getOSDTime());
+                        //timeBar.setCurrentTime(seekedTime);
                         startUpdateTime();//开始刷新回放时间
                         break;
                     case FAILED:
                         //播放失败
+                        cancelUpdateTime();
                         statusChangeHandler.setStatus(HkplayerStatus.FAILED);
                         playHintText.setVisibility(View.VISIBLE);
                         playHintText.setText(MessageFormat.format("回放失败，错误码：{0}", Integer.toHexString(errorCode)));
                         break;
                     case EXCEPTION:
                         //取流异常
+                        cancelUpdateTime();
                         statusChangeHandler.setStatus(HkplayerStatus.EXCEPTION);
                         mPlayer.stopPlay();//异常时关闭取流
                         playHintText.setVisibility(View.VISIBLE);
@@ -463,6 +482,7 @@ public class HkplayerPlayBackView extends RelativeLayout implements HikVideoPlay
                         break;
                     case FINISH:
                         //录像回放结束
+                        cancelUpdateTime();
                         statusChangeHandler.setStatus(HkplayerStatus.FINISH);
                         ToastUtils.showShort("没有录像片段了");
                         break;

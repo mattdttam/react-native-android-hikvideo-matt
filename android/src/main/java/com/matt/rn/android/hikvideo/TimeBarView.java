@@ -71,7 +71,7 @@ public class TimeBarView extends View {
     /*按下标志,按下时相应外部输入*/
     private boolean mTouchDownFlag = false;
     /*时间条被冻结标志，冻结后时间条不能被移动*/
-    private boolean mIsFrozen = false;
+    private boolean mIsFrozen = true;
     /*是否双击标识*/
     private boolean isDouble;
     /*双指之前的距离*/
@@ -96,6 +96,10 @@ public class TimeBarView extends View {
             return;
         }
         initView();
+    }
+
+    public void setmIsFrozen(boolean flag) {
+        mIsFrozen = flag;
     }
 
     private void initView() {

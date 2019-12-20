@@ -10,6 +10,7 @@ import {
   StyleSheet,
   Image,
   TouchableOpacity,
+  ToastAndroid,
 } from 'react-native';
 import {PLAYER_STATUS, PLAYER_COMMANDS} from './HkplayerConstant';
 import HkplayerPlayBackView from './HkplayerPlayBackView';
@@ -173,72 +174,77 @@ export default class PlayBackPlayer extends React.Component {
                 </Text>
               </TouchableOpacity>
             </View>
-            <View style={styles.item}>
-              <TouchableOpacity
-                style={styles.aButton}
-                onPress={() => this.executeCommand(PLAYER_COMMANDS.SOUND)}
-                disabled={this.state.status != PLAYER_STATUS.SUCCESS || this.props.disableVoice}>
-                <Image
-                  style={styles.itemImage}
-                  source={this.renderVoiceImage()}
-                />
-                <Text
-                  style={
-                    this.state.status == PLAYER_STATUS.SUCCESS && !this.props.disableVoice
-                      ? styles.itemText
-                      : styles.itemTextDis
-                  }>
-                  {this.state.mSoundOpen == true ? '静音' : '开启声音'}
-                </Text>
-              </TouchableOpacity>
+			<View style={styles.item}>
             </View>
           </View>
-          <View style={styles.line}>
-            <View style={styles.item}>
-              <TouchableOpacity
-                style={styles.aButton}
-                onPress={() => this.executeCommand(PLAYER_COMMANDS.CAPTURE)}
-                disabled={this.state.status != PLAYER_STATUS.SUCCESS || this.props.disableCapture}>
-                <Image
-                  style={styles.itemImage}
-                  source={
-                    this.state.status == PLAYER_STATUS.SUCCESS && !this.props.disableCapture
-                      ? require('./images/camera.png')
-                      : require('./images/camera-dis.png')
-                  }
-                />
-                <Text
-                  style={
-                    this.state.status == PLAYER_STATUS.SUCCESS && !this.props.disableCapture
-                      ? styles.itemText
-                      : styles.itemTextDis
-                  }>
-                  截屏
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.item}>
-              <TouchableOpacity
-                style={styles.aButton}
-                onPress={() => this.executeCommand(PLAYER_COMMANDS.RECORD)}
-                disabled={this.state.status != PLAYER_STATUS.SUCCESS || this.props.disableRecord}>
-                <Image
-                  style={styles.itemImage}
-                  source={this.renderRecordImage()}
-                />
-                <Text
-                  style={
-                    this.state.status == PLAYER_STATUS.SUCCESS && !this.props.disableRecord
-                      ? styles.itemText
-                      : styles.itemTextDis
-                  }>
-                  {this.state.mRecording==true?"停止录像":"开始录像"}
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.item}></View>
-            <View style={styles.item}></View>
-          </View>
+		  {
+			!this.props.hideExButtons?(
+			  <View style={styles.line}>
+				<View style={styles.item}>
+				  <TouchableOpacity
+					style={styles.aButton}
+					onPress={() => this.executeCommand(PLAYER_COMMANDS.SOUND)}
+					disabled={this.state.status != PLAYER_STATUS.SUCCESS || this.props.disableVoice}>
+					<Image
+					  style={styles.itemImage}
+					  source={this.renderVoiceImage()}
+					/>
+					<Text
+					  style={
+						this.state.status == PLAYER_STATUS.SUCCESS && !this.props.disableVoice
+						  ? styles.itemText
+						  : styles.itemTextDis
+					  }>
+					  {this.state.mSoundOpen == true ? '静音' : '开启声音'}
+					</Text>
+				  </TouchableOpacity>
+				</View>
+				<View style={styles.item}>
+				  <TouchableOpacity
+					style={styles.aButton}
+					onPress={() => this.executeCommand(PLAYER_COMMANDS.CAPTURE)}
+					disabled={this.state.status != PLAYER_STATUS.SUCCESS || this.props.disableCapture}>
+					<Image
+					  style={styles.itemImage}
+					  source={
+						this.state.status == PLAYER_STATUS.SUCCESS && !this.props.disableCapture
+						  ? require('./images/camera.png')
+						  : require('./images/camera-dis.png')
+					  }
+					/>
+					<Text
+					  style={
+						this.state.status == PLAYER_STATUS.SUCCESS && !this.props.disableCapture
+						  ? styles.itemText
+						  : styles.itemTextDis
+					  }>
+					  截屏
+					</Text>
+				  </TouchableOpacity>
+				</View>
+				<View style={styles.item}>
+				  <TouchableOpacity
+					style={styles.aButton}
+					onPress={() => this.executeCommand(PLAYER_COMMANDS.RECORD)}
+					disabled={this.state.status != PLAYER_STATUS.SUCCESS || this.props.disableRecord}>
+					<Image
+					  style={styles.itemImage}
+					  source={this.renderRecordImage()}
+					/>
+					<Text
+					  style={
+						this.state.status == PLAYER_STATUS.SUCCESS && !this.props.disableRecord
+						  ? styles.itemText
+						  : styles.itemTextDis
+					  }>
+					  {this.state.mRecording==true?"停止录像":"开始录像"}
+					</Text>
+				  </TouchableOpacity>
+				</View>
+				<View style={styles.item}></View>
+			  </View>
+			):null
+		  }
         </View>
       </View>
     );
