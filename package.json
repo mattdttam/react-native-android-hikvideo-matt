@@ -1,6 +1,6 @@
 {
   "name": "react-native-android-hikvideo-matt",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "A ReactNative Hikvision Component for android",
   "main": "index.js",
   "scripts": {
