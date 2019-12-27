@@ -33,9 +33,9 @@ import hik.common.isms.hpsclient.AbsTime;
 
 import static com.facebook.react.bridge.UiThreadUtil.runOnUiThread;
 
-public class HkplayerPlayBackView extends RelativeLayout implements HikVideoPlayerCallback, TextureView.SurfaceTextureListener {
+public class SimpleHkplayerPlayBackView extends RelativeLayout implements HikVideoPlayerCallback, TextureView.SurfaceTextureListener {
 
-    private final String TAG = "HkplayerPlayBackView";
+    private final String TAG = "SimplePlayBackView";
 
     private Context context;
     private HkplayerStatusChangeHandler statusChangeHandler;
@@ -43,24 +43,20 @@ public class HkplayerPlayBackView extends RelativeLayout implements HikVideoPlay
     private TextureView textureView;
     private ProgressBar progressBar;
     private TextView playHintText;
-    private TimeBarView timeBar;
     private String mUri;
     private HikVideoPlayer mPlayer;
     /*回放开始时间*/
     private Calendar mStartCalendar;
     /*回放结束时间*/
     private Calendar mEndCalendar;
-    /*回放定位时间*/
-    private Calendar mSeekCalendar = Calendar.getInstance();
-    private ReadableArray segments;
     private long startTime;
     private long endTime;
 
-    public HkplayerPlayBackView(final ThemedReactContext themedReactContext) {
+    public SimpleHkplayerPlayBackView(final ThemedReactContext themedReactContext) {
         super(themedReactContext);
         this.context = themedReactContext;
         this.statusChangeHandler = new HkplayerStatusChangeHandler(themedReactContext,
-                "HKPLAYER_PLAY_BACK_STATUS");
+                "SIMPLE_HKPLAYER_PLAY_BACK_STATUS");
         initView(themedReactContext);
         mPlayer = HikVideoPlayerFactory.provideHikVideoPlayer();
     }
@@ -71,8 +67,22 @@ public class HkplayerPlayBackView extends RelativeLayout implements HikVideoPlay
     }
 
     public void setSegments(ReadableArray segments) {
-        this.segments = segments;
-        initTimeBarView();
+        // 设置开始、结束时间
+        startTime = CalendarUtil.getDefaultStartCalendar().getTimeInMillis();
+        endTime = CalendarUtil.getCurDayEndTime(startTime);
+        if(segments.size()>0){
+            ReadableMap segMapBegin = segments.getMap(0);
+            ReadableMap segMapEnd = segments.getMap(segments.size() - 1);
+            String segBtime = segMapBegin.getString("beginTime");
+            String segEtime = segMapEnd.getString("endTime");
+            try{
+                SimpleDateFormat sdf =   new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss.SSS" );
+                startTime = sdf.parse(segBtime.substring(0,23).replace('T',' ')).getTime();
+                endTime = sdf.parse( segEtime.substring(0,23).replace('T',' ')).getTime();
+            } catch (Exception e){
+                Log.e(TAG, "segments: beginTime&endTime error");
+            }
+        }
     }
 
     /**
@@ -90,15 +100,6 @@ public class HkplayerPlayBackView extends RelativeLayout implements HikVideoPlay
                 break;
             case "PAUSE":
                 executePauseEvent();
-                break;
-            case "CAPTURE":
-                executeCaptureEvent();
-                break;
-            case "RECORD":
-                executeRecordEvent();
-                break;
-            case "SOUND":
-                executeSoundEvent();
                 break;
             case "ONPAUSE":
                 onPause();
@@ -151,122 +152,12 @@ public class HkplayerPlayBackView extends RelativeLayout implements HikVideoPlay
         fl.setId(View.generateViewId());
         addView(fl);
 
-        timeBar = new TimeBarView(themedReactContext, null);
-        LayoutParams timeBarParams = new LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, MyUtils.dip2px(context, 50));
-        timeBarParams.addRule(RelativeLayout.BELOW, fl.getId());
-        timeBar.setLayoutParams(timeBarParams);
-        timeBar.setBackgroundColor(getResources().getColor(R.color.playbackTimebarBackground));
-        addView(timeBar);
-
         LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT);
         this.setLayoutParams(params);
 
         textureView.setSurfaceTextureListener(this);
     }
-
-    private void initTimeBarView() {
-
-        // 如果有视频还在播放中，则先关闭视频
-        if(statusChangeHandler.getStatus() == HkplayerStatus.SUCCESS) {
-            if (mPlayer.stopPlay()) {
-                //statusChangeHandler.setStatus(HkplayerStatus.IDLE);
-                statusChangeHandler.reset();
-                progressBar.setVisibility(View.INVISIBLE);
-                playHintText.setVisibility(View.INVISIBLE);
-                playHintText.setText("");
-                cancelUpdateTime();
-            }
-        }
-
-        // 设置视频片信息
-        List segList = new ArrayList();
-        for(int i=0; i<segments.size(); i++) {
-            ReadableMap segMap = segments.getMap(i);
-            RecordSegment recordSegment = new RecordSegment();
-            recordSegment.setBeginTime(segMap.getString("beginTime"));
-            recordSegment.setEndTime(segMap.getString("endTime"));
-            segList.add(recordSegment);
-        }
-        timeBar.addFileInfoList(segList);
-
-        // 设置开始、结束时间
-        startTime = CalendarUtil.getDefaultStartCalendar().getTimeInMillis();
-        endTime = CalendarUtil.getCurDayEndTime(startTime);
-        if(segments.size()>0){
-            ReadableMap segMapBegin = segments.getMap(0);
-            ReadableMap segMapEnd = segments.getMap(segments.size() - 1);
-            String segBtime = segMapBegin.getString("beginTime");
-            String segEtime = segMapEnd.getString("endTime");
-            try{
-                SimpleDateFormat sdf =   new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss.SSS" );
-                startTime = sdf.parse(segBtime.substring(0,23).replace('T',' ')).getTime();
-                endTime = sdf.parse( segEtime.substring(0,23).replace('T',' ')).getTime();
-            } catch (Exception e){
-                Log.e(TAG, "segments: beginTime&endTime error");
-            }
-        } else {
-            timeBar.setmIsFrozen(true);
-        }
-        timeBar.setCurrentTime(startTime);
-
-        // 设置回调
-        timeBar.setTimeBarCallback(new TimeBarView.TimePickedCallBack() {
-            @Override
-            public void onMoveTimeCallback(long currentTime) {
-
-            }
-
-            @Override
-            public void onBarMoving(long currentTime) {
-
-            }
-
-            @Override
-            public void onTimePickedCallback(long currentTime) {
-                if(currentTime>=startTime && currentTime<=endTime) {
-                    //定位操作的时间要在录像片段开始时间和结束时间之内，不再范围内不要执行以下操作
-                    mSeekCalendar.setTimeInMillis(currentTime);
-                    Log.e(TAG, "onTimePickedCallback: currentTime = " + CalendarUtil.calendarToyyyy_MM_dd_T_HH_mm_SSSZ(mSeekCalendar));
-                    AbsTime start = CalendarUtil.calendarToABS(mSeekCalendar);
-                    progressBar.setVisibility(View.VISIBLE);
-                    new Thread(() -> {
-                        cancelUpdateTime();//seek时停止刷新时间
-                        if (!mPlayer.seekAbsPlayback(start, HkplayerPlayBackView.this)) {
-                            onPlayerStatus(Status.FAILED, mPlayer.getLastError());
-                        }
-                    }).start();
-                }
-            }
-
-            @Override
-            public void onMaxScale() {
-
-            }
-
-            @Override
-            public void onMinScale() {
-
-            }
-        });
-    }
-
-    /**
-     * 每隔400ms获取一次当前回放的系统时间
-     * 更新时间条上的OSD时间
-     */
-    private final Runnable mGetOSDTimeTask = new Runnable() {
-        @Override
-        public void run() {
-            long osdTime = mPlayer.getOSDTime();
-            if (osdTime > -1) {
-                timeBar.setCurrentTime(osdTime);
-            }
-
-            startUpdateTime();
-        }
-    };
 
     private void executeStartEvent() {
         if (getPreviewUri()) {
@@ -286,9 +177,6 @@ public class HkplayerPlayBackView extends RelativeLayout implements HikVideoPlay
                 progressBar.setVisibility(View.INVISIBLE);
                 playHintText.setVisibility(View.INVISIBLE);
                 playHintText.setText("");
-                cancelUpdateTime();
-                timeBar.setCurrentTime(startTime);
-                timeBar.setmIsFrozen(true);
             }
         } else {
             ToastUtils.showShort("没有视频在播放");
@@ -310,8 +198,6 @@ public class HkplayerPlayBackView extends RelativeLayout implements HikVideoPlay
 				playHintText.setVisibility(View.VISIBLE);
                 playHintText.setText("暂停中...");
                 ToastUtils.showShort("暂停播放");
-                timeBar.setmIsFrozen(true);
-                cancelUpdateTime();
             }
         } else {
             //恢复播放
@@ -320,73 +206,6 @@ public class HkplayerPlayBackView extends RelativeLayout implements HikVideoPlay
 				playHintText.setVisibility(View.INVISIBLE);
                 playHintText.setText("");
                 ToastUtils.showShort("恢复播放");
-                timeBar.setmIsFrozen(false);
-                startUpdateTime();
-            }
-        }
-    }
-
-    /**
-     * 执行抓图事件
-     */
-    private void executeCaptureEvent() {
-        if (statusChangeHandler.getStatus() != HkplayerStatus.SUCCESS) {
-            ToastUtils.showShort("没有视频在播放");
-        }
-
-        //抓图
-        if (mPlayer.capturePicture(MyUtils.getCaptureImagePath(this.context))) {
-            ToastUtils.showShort("截屏成功");
-        }
-    }
-
-    /**
-     * 执行录像事件
-     */
-    private void executeRecordEvent() {
-        if (statusChangeHandler.getStatus() != HkplayerStatus.SUCCESS) {
-            ToastUtils.showShort("没有视频在播放");
-        }
-
-        if (!statusChangeHandler.ismRecording()) {
-            //开始录像
-            String path = MyUtils.getLocalRecordPath(this.context);
-            if (mPlayer.startRecord(path)) {
-                statusChangeHandler.setmRecording(true);
-                ToastUtils.showShort("已开始录像");
-				playHintText.setVisibility(View.VISIBLE);
-                playHintText.setText("正在录像中...");
-            }
-        } else {
-            //关闭录像
-            if (mPlayer.stopRecord()) {
-                statusChangeHandler.setmRecording(false);
-                ToastUtils.showShort("已停止录像");
-				playHintText.setVisibility(View.INVISIBLE);
-                playHintText.setText("");
-            }
-        }
-    }
-
-    /**
-     * 执行声音开关事件
-     */
-    private void executeSoundEvent() {
-        if (statusChangeHandler.getStatus() != HkplayerStatus.SUCCESS) {
-            ToastUtils.showShort("没有视频在播放");
-        }
-
-        if (!statusChangeHandler.ismSoundOpen()) {
-            //打开声音
-            if (mPlayer.enableSound(true)) {
-                statusChangeHandler.setmSoundOpen(true);
-                ToastUtils.showShort("声音已开");
-            }
-        } else {
-            //关闭声音
-            if (mPlayer.enableSound(false)) {
-                statusChangeHandler.setmSoundOpen(false);
-                ToastUtils.showShort("声音已关");
             }
         }
     }
@@ -426,7 +245,7 @@ public class HkplayerPlayBackView extends RelativeLayout implements HikVideoPlay
         new Thread(() -> {
             //不要通过判断 startPlayback() 方法返回 true 来确定播放成功，播放成功会通过HikVideoPlayerCallback回调，startPlayback() 方法返回 false 即代表 播放失败;
             //seekTime 参数可以为NULL，表示无需定位到指定时间开始播放。
-            if (!mPlayer.startPlayback(mUri, startTimeST, stopTimeST, HkplayerPlayBackView.this)) {
+            if (!mPlayer.startPlayback(mUri, startTimeST, stopTimeST, SimpleHkplayerPlayBackView.this)) {
                 onPlayerStatus(Status.FAILED, mPlayer.getLastError());
             }
         }).start();
@@ -457,21 +276,17 @@ public class HkplayerPlayBackView extends RelativeLayout implements HikVideoPlay
                         }
                         playHintText.setVisibility(View.INVISIBLE);
                         textureView.setKeepScreenOn(true);//保持亮屏
-                        timeBar.setmIsFrozen(false);
                         //timeBar.setCurrentTime(mPlayer.getOSDTime());
                         //timeBar.setCurrentTime(seekedTime);
-                        startUpdateTime();//开始刷新回放时间
                         break;
                     case FAILED:
                         //播放失败
-                        cancelUpdateTime();
                         statusChangeHandler.setStatus(HkplayerStatus.FAILED);
                         playHintText.setVisibility(View.VISIBLE);
                         playHintText.setText(MessageFormat.format("回放失败，错误码：{0}", Integer.toHexString(errorCode)));
                         break;
                     case EXCEPTION:
                         //取流异常
-                        cancelUpdateTime();
                         statusChangeHandler.setStatus(HkplayerStatus.EXCEPTION);
                         mPlayer.stopPlay();//异常时关闭取流
                         playHintText.setVisibility(View.VISIBLE);
@@ -479,7 +294,6 @@ public class HkplayerPlayBackView extends RelativeLayout implements HikVideoPlay
                         break;
                     case FINISH:
                         //录像回放结束
-                        cancelUpdateTime();
                         statusChangeHandler.setStatus(HkplayerStatus.FINISH);
                         ToastUtils.showShort("没有录像片段了");
                         break;
@@ -487,22 +301,6 @@ public class HkplayerPlayBackView extends RelativeLayout implements HikVideoPlay
             }
         });
     }
-
-
-    /**
-     * 开始刷新回放时间
-     */
-    private void startUpdateTime() {
-        playHintText.getHandler().postDelayed(mGetOSDTimeTask, 400);
-    }
-
-    /**
-     * 停止刷新回放时间
-     */
-    private void cancelUpdateTime() {
-        playHintText.getHandler().removeCallbacks(mGetOSDTimeTask);
-    }
-
 
     /*************************TextureView.SurfaceTextureListener 接口的回调方法********************/
     //APP前后台切换时 SurfaceTextureListener可能在有某些华为手机上不会回调，例如：华为P20，因此我们需要在Activity生命周期中手动调用回调方法
@@ -525,7 +323,6 @@ public class HkplayerPlayBackView extends RelativeLayout implements HikVideoPlay
         if (statusChangeHandler.getStatus() == HkplayerStatus.SUCCESS) {
             if (mPlayer.stopPlay()) {
                 statusChangeHandler.setStatus(HkplayerStatus.STOPPING);//暂停播放，再次进入时恢复播放
-                cancelUpdateTime();
                 Log.d(TAG, "onSurfaceTextureDestroyed: stopPlay");
             }
         }

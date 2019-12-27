@@ -30,7 +30,8 @@ public class HkplayerViewPackage implements ReactPackage {
     public List<ViewManager> createViewManagers(ReactApplicationContext reactContext) {
         return Arrays.<ViewManager>asList(
                 new HkplayerViewManager(),
-                new HkplayerPlayBackViewManager()
+                new HkplayerPlayBackViewManager(),
+                new SimpleHkplayerPlayBackViewManager()
         );
     }
 }
